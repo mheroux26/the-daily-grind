@@ -77,16 +77,6 @@ export default function BookCard({ book, onAdd, isInLibrary }) {
           >
             {buy.label}
           </a>
-          {book.info_link && (
-            <a
-              href={book.info_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost"
-            >
-              More info
-            </a>
-          )}
         </div>
       </div>
     </div>

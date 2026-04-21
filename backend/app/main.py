@@ -5,8 +5,7 @@ from typing import Optional
 
 from .models import ScanResponse
 from .ocr import (
-    extract_text,
-    extract_text_with_positions,
+    extract_ocr,
     build_query_variations,
     build_query_variations_with_positions,
 )
@@ -43,10 +42,9 @@ async def scan_book_cover(file: UploadFile = File(...)):
     if len(image_bytes) > 10 * 1024 * 1024:
         raise HTTPException(400, "Image must be under 10 MB")
 
-    # Step 1: OCR with position data
+    # Step 1: OCR with position data (single Vision API call)
     try:
-        texts_with_pos = extract_text_with_positions(image_bytes)
-        ocr_text = extract_text(image_bytes)
+        ocr_text, texts_with_pos = extract_ocr(image_bytes)
     except RuntimeError as e:
         raise HTTPException(500, str(e))
     except Exception as e:
@@ -107,83 +105,17 @@ async def scan_book_cover(file: UploadFile = File(...)):
 
 
 @app.get("/search", response_model=ScanResponse)
-async def search_by_text(q: str, mode: str = "title"):
-    """
-    Search for books. Mode determines how the query is interpreted:
-      - "title": search by book title (intitle:)
-      - "author": search by author name (inauthor:)
-      - "both": search with title + author (use "by" to separate, e.g. "Bright Years by Sarah Dame")
-    """
+async def search_by_text(q: str):
     if not q.strip():
         raise HTTPException(400, "Search query cannot be empty")
 
-    raw = q.strip()
-    query = _build_query_for_mode(raw, mode)
-    logger.info("TEXT SEARCH [mode=%s]: '%s' -> query='%s'", mode, raw, query)
-
     try:
-        matches = await search_books(query)
-
-        # If structured query returns nothing, fall back to raw text
-        if not matches and query != raw:
-            logger.info("  Structured query empty, falling back to raw: '%s'", raw)
-            matches = await search_books(raw)
-            query = raw
+        matches = await search_books(q.strip())
     except Exception as e:
         raise HTTPException(502, "Book search failed: {}".format(e))
 
-    logger.info("TEXT SEARCH RESULT: query='%s' -> %d matches", query, len(matches))
-
     return ScanResponse(
         ocr_text="",
-        query_used=query,
+        query_used=q.strip(),
         matches=matches,
     )
-
-
-def _build_query_for_mode(text: str, mode: str) -> str:
-    """
-    Build a Google Books query based on the user's chosen search mode.
-
-    Mode "title":  "The Bright Years"       -> intitle:Bright intitle:Years
-    Mode "author": "Elin Hilderbrand"       -> inauthor:Elin inauthor:Hilderbrand
-    Mode "both":   "Bright Years by Sarah"  -> intitle:Bright intitle:Years inauthor:Sarah
-    """
-    import re
-
-    words = text.split()
-
-    if mode == "author":
-        # All words treated as author name
-        author_words = [w for w in words if len(w) >= 2]
-        if author_words:
-            return " ".join("inauthor:" + w for w in author_words[:4])
-        return text
-
-    if mode == "title":
-        # All words treated as title
-        title_words = [w for w in words if len(w) >= 2 and w.lower() not in ("the", "a", "an")]
-        if title_words:
-            return " ".join("intitle:" + w for w in title_words[:5])
-        return text
-
-    if mode == "both":
-        # Check for "by" separator
-        by_match = re.split(r'\s+by\s+', text, maxsplit=1, flags=re.IGNORECASE)
-        if len(by_match) == 2:
-            title_part, author_part = by_match
-            parts = []
-            for w in title_part.split():
-                if len(w) >= 2 and w.lower() not in ("the", "a", "an"):
-                    parts.append("intitle:" + w)
-            for w in author_part.split():
-                if len(w) >= 2:
-                    parts.append("inauthor:" + w)
-            if parts:
-                return " ".join(parts)
-
-        # No "by" — just do a plain combined search
-        return text
-
-    # Unknown mode — plain search
-    return text

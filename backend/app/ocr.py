@@ -1,37 +1,14 @@
+import base64
 import logging
 import re
-from io import BytesIO
 from typing import List, Tuple
 
-from .ocr_correct import correct_words, get_corrected_and_original
+import httpx
 
 logger = logging.getLogger("photo-to-tbr")
 
-import numpy as np
-from PIL import Image, ImageEnhance, ImageFilter
-
-# Try EasyOCR first (better for scene text), fall back to Tesseract
-try:
-    import easyocr
-    _reader = None  # Lazy-loaded on first use
-
-    def _get_reader():
-        global _reader
-        if _reader is None:
-            print("Loading EasyOCR model (first time only, may take a minute)...")
-            _reader = easyocr.Reader(["en"], gpu=False)
-            print("EasyOCR model loaded.")
-        return _reader
-
-    HAS_EASYOCR = True
-except ImportError:
-    HAS_EASYOCR = False
-
-try:
-    import pytesseract
-    HAS_TESSERACT = True
-except ImportError:
-    HAS_TESSERACT = False
+# Google Cloud Vision API endpoint (uses same API key as Books API)
+VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
 
 
 # Common social media / UI noise words to filter out
@@ -94,103 +71,95 @@ NOISE_PATTERNS = [
 ]
 
 
-def extract_text(image_bytes: bytes) -> str:
-    """
-    Run OCR on image bytes using the best available engine.
-    EasyOCR is preferred (better at scene text / stylized fonts).
-    Falls back to Tesseract.
-    """
-    image = Image.open(BytesIO(image_bytes))
+def _call_vision_api(image_bytes: bytes) -> dict:
+    """Call Google Cloud Vision API for text detection."""
+    from .config import settings
 
-    # Preprocess: resize, convert, enhance
-    image = _preprocess(image)
+    if not settings.google_books_api_key:
+        raise RuntimeError("No Google API key configured. Set GOOGLE_BOOKS_API_KEY.")
 
-    if HAS_EASYOCR:
-        return _ocr_easyocr(image)
-    elif HAS_TESSERACT:
-        return _ocr_tesseract(image)
+    # Encode image as base64
+    b64_image = base64.b64encode(image_bytes).decode("utf-8")
+
+    payload = {
+        "requests": [{
+            "image": {"content": b64_image},
+            "features": [{"type": "TEXT_DETECTION"}],
+        }]
+    }
+
+    resp = httpx.post(
+        VISION_API_URL,
+        params={"key": settings.google_books_api_key},
+        json=payload,
+        timeout=30,
+    )
+
+    if resp.status_code != 200:
+        logger.error("Vision API error %d: %s", resp.status_code, resp.text[:500])
+        raise RuntimeError(f"Vision API returned {resp.status_code}")
+
+    data = resp.json()
+    responses = data.get("responses", [{}])
+    if not responses:
+        return {}
+
+    result = responses[0]
+    if "error" in result:
+        raise RuntimeError(f"Vision API error: {result['error'].get('message', '')}")
+
+    return result
+
+
+def extract_ocr(image_bytes: bytes) -> Tuple[str, List[Tuple[str, float, float, float]]]:
+    """
+    Run OCR on image bytes using Google Cloud Vision API.
+    Returns (cleaned_text, texts_with_positions) in a single API call.
+    texts_with_positions is a list of (text, x_center, y_center, text_height)
+    with positions normalized 0-1 relative to image dimensions.
+    """
+    result = _call_vision_api(image_bytes)
+    annotations = result.get("textAnnotations", [])
+    if not annotations:
+        return "", []
+
+    # First annotation is the full text block
+    raw = annotations[0].get("description", "")
+    ocr_text = _clean(raw)
+
+    # Get image dimensions from the full text annotation bounding box
+    full_verts = annotations[0].get("boundingPoly", {}).get("vertices", [])
+    if full_verts:
+        xs = [v.get("x", 0) for v in full_verts]
+        ys = [v.get("y", 0) for v in full_verts]
+        width = max(xs) if max(xs) > 0 else 1
+        height = max(ys) if max(ys) > 0 else 1
     else:
-        raise RuntimeError(
-            "No OCR engine available. Install easyocr or pytesseract."
-        )
+        width, height = 1, 1
+
+    texts_with_pos = []
+    # Skip first annotation (full text), process individual words
+    for ann in annotations[1:]:
+        text = ann.get("description", "").strip()
+        if not text:
+            continue
+
+        verts = ann.get("boundingPoly", {}).get("vertices", [])
+        if not verts:
+            continue
+
+        word_xs = [v.get("x", 0) for v in verts]
+        word_ys = [v.get("y", 0) for v in verts]
+
+        x_center = (min(word_xs) + max(word_xs)) / 2 / width
+        y_center = (min(word_ys) + max(word_ys)) / 2 / height
+        text_height = (max(word_ys) - min(word_ys)) / height
+
+        texts_with_pos.append((text, x_center, y_center, text_height))
+
+    return ocr_text, texts_with_pos
 
 
-def extract_text_with_positions(image_bytes: bytes) -> List[Tuple[str, float, float, float]]:
-    """
-    Run OCR and return text with position info: (text, x_center, y_center, text_height).
-    Positions are normalized 0-1 relative to image dimensions.
-    This lets us prioritize text from the center of the image (likely the book).
-    """
-    image = Image.open(BytesIO(image_bytes))
-    image = _preprocess(image)
-    width, height = image.size
-
-    if HAS_EASYOCR:
-        reader = _get_reader()
-        img_array = np.array(image)
-        results = reader.readtext(img_array)
-
-        texts_with_pos = []
-        for (bbox, text, confidence) in results:
-            if confidence < 0.3:
-                continue
-            # bbox is [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
-            xs = [p[0] for p in bbox]
-            ys = [p[1] for p in bbox]
-            x_center = (min(xs) + max(xs)) / 2 / width
-            y_center = (min(ys) + max(ys)) / 2 / height
-            text_height = (max(ys) - min(ys)) / height
-            texts_with_pos.append((text, x_center, y_center, text_height))
-
-        return texts_with_pos
-
-    # Fallback: no position info from Tesseract basic mode
-    text = _ocr_tesseract(image)
-    return [(text, 0.5, 0.5, 0.05)]
-
-
-def _preprocess(image: Image.Image) -> Image.Image:
-    """Preprocess image for better OCR results."""
-    # Resize if too large (speeds up OCR significantly)
-    max_dim = 1600
-    if max(image.size) > max_dim:
-        ratio = max_dim / max(image.size)
-        new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
-        image = image.resize(new_size, Image.LANCZOS)
-
-    # Convert to RGB
-    if image.mode != "RGB":
-        image = image.convert("RGB")
-
-    # Enhance contrast (helps with stylized text on colored backgrounds)
-    enhancer = ImageEnhance.Contrast(image)
-    image = enhancer.enhance(1.3)
-
-    # Slight sharpening
-    image = image.filter(ImageFilter.SHARPEN)
-
-    return image
-
-
-def _ocr_easyocr(image: Image.Image) -> str:
-    """Run EasyOCR on a PIL image."""
-    reader = _get_reader()
-    img_array = np.array(image)
-    results = reader.readtext(img_array)
-
-    # Extract text from results, filtering low confidence
-    texts = [text for (_, text, conf) in results if conf > 0.3]
-    raw = " ".join(texts)
-    return _clean(raw)
-
-
-def _ocr_tesseract(image: Image.Image) -> str:
-    """Run Tesseract OCR on a PIL image."""
-    if not HAS_TESSERACT:
-        raise RuntimeError("pytesseract is not installed.")
-
-    raw = pytesseract.image_to_string(image, lang="eng")
-    return _clean(raw)
 
 
 def _clean(text: str) -> str:
@@ -418,48 +387,7 @@ def build_query_variations_with_positions(
     # Also extract structured title/author separation
     title_words, author_words = _extract_title_and_author(texts_with_pos)
 
-    # === OCR SPELL CORRECTION ===
-    # Correct common OCR misreads: BRIGHI→BRIGHT, NEARS→YEARS, CARAh→Sarah
-    corrected_title, title_changed = get_corrected_and_original(title_words)
-    corrected_author, author_changed = get_corrected_and_original(author_words)
-    corrected_unique, unique_changed = get_corrected_and_original(unique_words)
-    any_correction = title_changed or author_changed or unique_changed
-
     queries = []
-
-    # === CORRECTED QUERIES FIRST (highest priority if corrections were made) ===
-    if any_correction:
-        # Corrected structured: intitle + inauthor with spell-corrected words
-        if corrected_title and corrected_author:
-            ct_parts = ["intitle:" + w for w in corrected_title[:3] if len(w) >= 4]
-            ca_parts = ["inauthor:" + w for w in corrected_author[:2] if len(w) >= 4]
-            parts = ct_parts + ca_parts
-            if len(parts) >= 2:
-                queries.append(" ".join(parts))
-
-        # Corrected title only
-        if corrected_title:
-            long_ct = [w for w in corrected_title if len(w) >= 3]
-            if long_ct:
-                q = " ".join("intitle:" + w for w in long_ct[:3])
-                if q not in queries:
-                    queries.append(q)
-
-        # Corrected plain text (no operators)
-        if len(corrected_unique) >= 2:
-            q = " ".join(corrected_unique[:4])
-            if q not in queries:
-                queries.append(q)
-
-        # Corrected author as inauthor:
-        if corrected_author:
-            long_ca = [w for w in corrected_author if len(w) >= 4]
-            if long_ca:
-                q = " ".join("inauthor:" + w for w in long_ca[:2])
-                if q not in queries:
-                    queries.append(q)
-
-    # === ORIGINAL (uncorrected) QUERIES as fallback ===
 
     # Query 1: STRUCTURED — use Google Books operators intitle: + inauthor:
     # Uses spaces (not +) to separate operators
@@ -468,9 +396,7 @@ def build_query_variations_with_positions(
         author_parts = ["inauthor:" + w for w in author_words[:2] if len(w) >= 4]
         parts = title_parts + author_parts
         if len(parts) >= 2:
-            q = " ".join(parts)
-            if q not in queries:
-                queries.append(q)
+            queries.append(" ".join(parts))
 
     # Query 2: STRUCTURED — title only with ALL title words (in case author is misread)
     if title_words:

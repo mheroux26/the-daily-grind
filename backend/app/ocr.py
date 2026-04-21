@@ -47,6 +47,16 @@ NOISE_WORDS = {
     # Generic overlay phrases
     "must", "need", "every", "these", "those", "most", "only",
     "really", "love", "loved", "amazing", "great", "good", "perfect",
+    # Social media caption / review phrases
+    "ride", "brilliant", "compelling", "writing", "smart", "funny",
+    "filled", "deep", "emotion", "characters", "nothing", "short",
+    "beautiful", "stunning", "incredible", "highly", "cannot",
+    "college", "meet", "lives", "dive", "right", "into",
+    "from", "there", "they", "their", "which", "with", "what",
+    "this", "that", "have", "been", "will", "just", "your",
+    "about", "also", "very", "much", "well", "here", "over",
+    "some", "than", "them", "then", "when", "would", "could",
+    "should", "being", "still", "after", "before", "while",
 }
 
 # Common short English words that ARE valid in book titles
@@ -111,17 +121,18 @@ def _call_vision_api(image_bytes: bytes) -> dict:
     return result
 
 
-def extract_ocr(image_bytes: bytes) -> Tuple[str, List[Tuple[str, float, float, float]]]:
+def extract_ocr(image_bytes: bytes) -> Tuple[str, List[Tuple[str, float, float, float]], str]:
     """
     Run OCR on image bytes using Google Cloud Vision API.
-    Returns (cleaned_text, texts_with_positions) in a single API call.
+    Returns (cleaned_text, texts_with_positions, raw_text) in a single API call.
     texts_with_positions is a list of (text, x_center, y_center, text_height)
     with positions normalized 0-1 relative to image dimensions.
+    raw_text is the unprocessed OCR output (used for @mention extraction).
     """
     result = _call_vision_api(image_bytes)
     annotations = result.get("textAnnotations", [])
     if not annotations:
-        return "", []
+        return "", [], ""
 
     # First annotation is the full text block
     raw = annotations[0].get("description", "")
@@ -157,7 +168,7 @@ def extract_ocr(image_bytes: bytes) -> Tuple[str, List[Tuple[str, float, float, 
 
         texts_with_pos.append((text, x_center, y_center, text_height))
 
-    return ocr_text, texts_with_pos
+    return ocr_text, texts_with_pos, raw
 
 
 
@@ -243,13 +254,12 @@ def _extract_title_and_author(texts_with_pos: List[Tuple[str, float, float, floa
     """
     zoomed = _is_zoomed_in(texts_with_pos)
 
-    book_texts = []
+    # First pass: collect candidates and find max text height
+    raw_book_texts = []
     for (text, x_center, y_center, text_height) in texts_with_pos:
         if zoomed:
-            # Relaxed zone: accept text across most of the image
             is_book_zone = (0.05 <= y_center <= 0.90) and (0.05 <= x_center <= 0.95)
         else:
-            # Strict zone for social media screenshots
             is_book_zone = (0.35 <= y_center <= 0.75) and (0.15 <= x_center <= 0.85)
         if not is_book_zone:
             continue
@@ -267,7 +277,15 @@ def _extract_title_and_author(texts_with_pos: List[Tuple[str, float, float, floa
             vowels = set("aeiouAEIOU")
             if len(word) >= 3 and not any(c in vowels for c in word):
                 continue
-            book_texts.append((word, text_height, y_center))
+            raw_book_texts.append((word, text_height, y_center))
+
+    if not raw_book_texts:
+        return [], []
+
+    # Size-based filtering: drop caption-sized text (< 20% of max height)
+    max_h = max(h for _, h, _ in raw_book_texts)
+    min_h_threshold = max_h * 0.20
+    book_texts = [(w, h, y) for w, h, y in raw_book_texts if h >= min_h_threshold]
 
     if not book_texts:
         return [], []
@@ -304,19 +322,21 @@ def _extract_book_zone_words(texts_with_pos: List[Tuple[str, float, float, float
     Returns (word, score) tuples sorted by relevance.
     Filters out UI elements, overlay text, and noise.
     Automatically detects zoomed-in images and relaxes the zone.
+
+    KEY: Uses text-height filtering to separate book cover text (large)
+    from social media caption text (small). On Instagram/TikTok screenshots,
+    the book title is 3-10x larger than caption text below it.
     """
     zoomed = _is_zoomed_in(texts_with_pos)
 
-    scored = []
+    # First pass: collect all candidate words WITH their text heights
+    candidates = []
     for (text, x_center, y_center, text_height) in texts_with_pos:
         if zoomed:
-            # Relaxed zone for zoomed-in book photos
             is_book_zone = (0.05 <= y_center <= 0.90) and (0.05 <= x_center <= 0.95)
         else:
-            # STRICT zone for social media screenshots
             is_book_zone = (0.35 <= y_center <= 0.75) and (0.15 <= x_center <= 0.85)
 
-        # Skip anything outside the book zone entirely
         if not is_book_zone:
             continue
 
@@ -325,38 +345,67 @@ def _extract_book_zone_words(texts_with_pos: List[Tuple[str, float, float, float
 
         for word in words:
             lower = word.lower()
-            # Skip noise, short words, numbers
             if lower in NOISE_WORDS or len(word) <= 1 or word.isdigit():
                 continue
-            # Skip words that look like usernames (all lowercase, 8+ chars)
             if word.islower() and len(word) >= 8:
                 continue
-            # Skip short ALL-CAPS words (2-3 chars) that are likely OCR garbage
-            # Real title words are usually 4+ chars. Short ones like "THF", "DAMC"
-            # are almost always misreads of "THE", "DAMO", etc.
             if word.isupper() and len(word) <= 3 and word.lower() not in VALID_SHORT_WORDS:
                 continue
-            # Skip words that are pure consonants (likely OCR noise)
             vowels = set("aeiouAEIOU")
             if len(word) >= 3 and not any(c in vowels for c in word):
                 continue
 
-            # Score: bigger text = higher score (title is biggest)
-            size_score = min(text_height * 15, 3.0)
-            # Capitalized words more likely to be title/author
-            cap_bonus = 2.0 if word[0].isupper() else 1.0
-            # Longer words are more reliable reads
-            length_bonus = 1.5 if len(word) >= 5 else 1.0
+            candidates.append((word, text_height))
 
-            scored.append((word, size_score * cap_bonus * length_bonus))
+    if not candidates:
+        return []
+
+    # Size-based filtering: drop words whose text height is less than 20%
+    # of the maximum text in the zone. On social media screenshots, book
+    # cover text (title/author) is MUCH larger than caption text below it.
+    # This eliminates Instagram captions, usernames, and review text while
+    # keeping the actual book title and author from the cover.
+    max_h = max(h for _, h in candidates)
+    min_h_threshold = max_h * 0.20
+
+    scored = []
+    for word, text_height in candidates:
+        if text_height < min_h_threshold:
+            logger.debug("  SIZE-FILTERED (h=%.4f < %.4f): '%s'", text_height, min_h_threshold, word)
+            continue
+
+        size_score = min(text_height * 15, 3.0)
+        cap_bonus = 2.0 if word[0].isupper() else 1.0
+        length_bonus = 1.5 if len(word) >= 5 else 1.0
+
+        scored.append((word, size_score * cap_bonus * length_bonus))
 
     scored.sort(key=lambda x: x[1], reverse=True)
     return scored
 
 
+def _extract_at_mentions(raw_text: str) -> List[str]:
+    """
+    Extract @mentions from raw OCR text as potential author names.
+    Instagram captions often @mention the actual author, which is a
+    strong signal for book search even when the cover text is hard to read.
+    """
+    mentions = re.findall(r'@(\w+)', raw_text)
+    results = []
+    for mention in mentions:
+        # Skip very short handles
+        if len(mention) < 4:
+            continue
+        # Try to split concatenated names: "emilynemens" -> try as-is
+        # (Google Books is good at fuzzy matching concatenated author names)
+        results.append(mention)
+    return results
+
+
 def build_query_variations_with_positions(
     texts_with_pos: List[Tuple[str, float, float, float]],
-    ocr_text: str
+    ocr_text: str,
+    raw_text: str = "",
 ) -> List[str]:
     """
     Build multiple query variations using position-aware analysis.
@@ -462,6 +511,21 @@ def build_query_variations_with_positions(
         q = unique_words[0]
         if len(q) >= 4 and q not in queries:
             queries.append(q)
+
+    # @mention queries: Instagram/TikTok captions often @mention the author.
+    # Use these as author-search fallbacks combined with top cover words.
+    if raw_text:
+        at_mentions = _extract_at_mentions(raw_text)
+        for mention in at_mentions[:2]:
+            # Combine @mention (as author) with top cover word (as title)
+            if unique_words:
+                q = f"inauthor:{mention} intitle:{unique_words[0]}"
+                if q not in queries:
+                    queries.append(q)
+            # Also try just the @mention as author
+            q = f"inauthor:{mention}"
+            if q not in queries:
+                queries.append(q)
 
     # Final fallback: basic text query
     basic = build_query(ocr_text)

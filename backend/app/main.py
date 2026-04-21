@@ -44,7 +44,7 @@ async def scan_book_cover(file: UploadFile = File(...)):
 
     # Step 1: OCR with position data (single Vision API call)
     try:
-        ocr_text, texts_with_pos = extract_ocr(image_bytes)
+        ocr_text, texts_with_pos, raw_ocr = extract_ocr(image_bytes)
     except RuntimeError as e:
         raise HTTPException(500, str(e))
     except Exception as e:
@@ -71,7 +71,7 @@ async def scan_book_cover(file: UploadFile = File(...)):
 
     # Step 2: Build smart queries using positions + text
     if texts_with_pos:
-        queries = build_query_variations_with_positions(texts_with_pos, ocr_text)
+        queries = build_query_variations_with_positions(texts_with_pos, ocr_text, raw_text=raw_ocr)
     else:
         queries = build_query_variations(ocr_text)
 

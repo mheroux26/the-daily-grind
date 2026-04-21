@@ -12,7 +12,8 @@ export default function MusicPlayer({ theme }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
-  const [isMinimized, setIsMinimized] = useState(false);
+  // Start minimized on mobile to save screen space
+  const [isMinimized, setIsMinimized] = useState(window.innerWidth < 768);
   const audioRef = useRef(null);
 
   // Build channels from theme

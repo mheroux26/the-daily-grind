@@ -28,8 +28,8 @@
   --crema: #c9b8e0;
   --border: rgba(179, 136, 255, 0.06);
   --border-light: rgba(179, 136, 255, 0.12);
-  --overlay-start: rgba(16, 12, 22, 0.72);
-  --overlay-end: rgba(16, 12, 22, 0.66);
+  --overlay-start: rgba(16, 12, 22, 0.55);
+  --overlay-end: rgba(16, 12, 22, 0.48);
   --font-heading: 'Space Grotesk', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --bg-image: url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1920&q=80');

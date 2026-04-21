@@ -2810,3 +2810,45 @@
   color: var(--opt-accent);
   font-weight: 600;
 }
+
+/* ══ MOBILE FIXES ═══════════════════════════════ */
+@media (max-width: 600px) {
+  /* Layout: less padding on mobile */
+  .app {
+    padding: 20px 14px 100px;
+  }
+
+  /* Shelf card: stack cover and body vertically on small screens */
+  .lib-card {
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+  }
+  .lib-cover-wrap {
+    width: 100px;
+    height: 150px;
+  }
+
+  /* Actions row: wrap so Goodreads and Remove stay inside the card */
+  .lib-actions-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Music player: smaller on mobile */
+  .music-player {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    min-width: auto;
+  }
+  .music-player.minimized {
+    left: auto;
+  }
+
+  /* Theme picker panel: fit to mobile screen */
+  .theme-picker-panel {
+    width: calc(100vw - 40px);
+    right: -10px;
+  }
+}

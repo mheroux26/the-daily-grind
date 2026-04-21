@@ -12,8 +12,6 @@ export default function MusicPlayer({ theme }) {
   const [activeChannel, setActiveChannel] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
-  // Start minimized on mobile to save screen space
-  const [isMinimized, setIsMinimized] = useState(window.innerWidth < 768);
   const audioRef = useRef(null);
 
   // Build channels from theme
@@ -32,7 +30,6 @@ export default function MusicPlayer({ theme }) {
     audioRef.current = audio;
 
     audio.addEventListener("error", () => {
-      // Try fallback URL if primary fails
       const channel = channels.find((c) => c.url === audio.src);
       if (channel?.fallback && audio.src !== channel.fallback) {
         audio.src = channel.fallback;
@@ -98,40 +95,29 @@ export default function MusicPlayer({ theme }) {
     setActiveChannel(null);
   }
 
-  if (isMinimized) {
-    return (
-      <div className="music-player minimized" onClick={() => setIsMinimized(false)}>
-        <span className="music-mini-icon">
-          {isPlaying ? "🎵" : "🎶"}
-        </span>
-        {isPlaying && activeChannel && (
-          <span className="music-mini-label">{activeChannel.emoji} {activeChannel.label}</span>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="music-player">
-      <div className="music-header">
-        <span className="music-title">
+    <div className="music-inline">
+      <div className="music-inline-header">
+        <span className="music-inline-title">
           {isPlaying && <span className="music-eq">♪</span>}
           Vibe Check
         </span>
-        <button className="music-minimize" onClick={() => setIsMinimized(true)}>
-          —
-        </button>
+        {activeChannel && isPlaying && (
+          <button className="music-inline-stop" onClick={stopMusic} title="Stop">
+            ■
+          </button>
+        )}
       </div>
 
-      <div className="music-channels">
+      <div className="music-inline-channels">
         {channels.map((channel) => (
           <button
             key={channel.id}
-            className={`music-channel ${activeChannel?.id === channel.id ? "active" : ""} ${activeChannel?.id === channel.id && isPlaying ? "playing" : ""}`}
+            className={`music-inline-ch ${activeChannel?.id === channel.id ? "active" : ""} ${activeChannel?.id === channel.id && isPlaying ? "playing" : ""}`}
             onClick={() => selectChannel(channel)}
           >
-            <span className="channel-emoji">{channel.emoji}</span>
-            <span className="channel-label">{channel.label}</span>
+            <span className="ch-emoji">{channel.emoji}</span>
+            <span className="ch-label">{channel.label}</span>
             {activeChannel?.id === channel.id && isPlaying && (
               <span className="channel-bars">
                 <span className="bar"></span>
@@ -144,10 +130,7 @@ export default function MusicPlayer({ theme }) {
       </div>
 
       {activeChannel && (
-        <div className="music-controls">
-          <button className="music-stop" onClick={stopMusic} title="Stop">
-            ■
-          </button>
+        <div className="music-inline-vol">
           <input
             type="range"
             className="music-volume"

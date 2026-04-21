@@ -110,6 +110,7 @@ function AppInner() {
       </header>
 
       <ThemePicker />
+      <MusicPlayer theme={theme} />
 
       <nav className="tab-bar">
         <button
@@ -290,7 +291,6 @@ function AppInner() {
         <p>the daily grind — fueled by books & caffeine</p>
       </footer>
 
-      <MusicPlayer theme={theme} />
     </div>
   );
 }

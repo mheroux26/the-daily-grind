@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import ImageCropper from "./ImageCropper";
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 export default function PhotoUpload({ onScanComplete, isScanning, setIsScanning }) {
   const [preview, setPreview] = useState(null);
   const [dragOver, setDragOver] = useState(false);
@@ -31,7 +33,7 @@ export default function PhotoUpload({ onScanComplete, isScanning, setIsScanning 
     form.append("file", blob, "cropped.jpg");
 
     try {
-      const res = await fetch("/scan", { method: "POST", body: form });
+      const res = await fetch(API_URL + "/scan", { method: "POST", body: form });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const detail = err.detail || "";
@@ -70,7 +72,7 @@ export default function PhotoUpload({ onScanComplete, isScanning, setIsScanning 
     setIsSearching(true);
 
     try {
-      const res = await fetch("/search?q=" + encodeURIComponent(searchText.trim()) + "&mode=" + searchMode);
+      const res = await fetch(API_URL + "/search?q=" + encodeURIComponent(searchText.trim()) + "&mode=" + searchMode);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || "Search failed");

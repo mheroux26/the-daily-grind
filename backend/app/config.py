@@ -10,7 +10,7 @@ _env_path = Path(__file__).resolve().parent.parent / ".env"
 class Settings(BaseSettings):
     google_books_api_key: str = ""  # Optional – works without key at low volume
     amazon_affiliate_tag: str = ""  # e.g. "yourtag-20"
-    max_results: int = 5
+    max_results: int = 10
     ocr_lang: str = "eng"
 
     class Config:

@@ -16,12 +16,14 @@ GOOGLE_BOOKS_URL = "https://www.googleapis.com/books/v1/volumes"
 OPEN_LIBRARY_SEARCH_URL = "https://openlibrary.org/search.json"
 
 
-async def search_books(query: str) -> List[BookMatch]:
+async def search_books(query: str, start_index: int = 0) -> List[BookMatch]:
     """Search Google Books API with retry logic for rate limiting (429/503)."""
     params = {
         "q": query,
         "maxResults": str(settings.max_results),
     }
+    if start_index > 0:
+        params["startIndex"] = str(start_index)
     if settings.google_books_api_key:
         params["key"] = settings.google_books_api_key
 

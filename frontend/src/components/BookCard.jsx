@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTheme } from "../ThemeContext";
 
 function buyLink(book, theme) {
@@ -11,6 +12,10 @@ function buyLink(book, theme) {
 export default function BookCard({ book, onAdd, isInLibrary }) {
   const { theme } = useTheme();
   const buy = buyLink(book, theme);
+  const [expanded, setExpanded] = useState(false);
+
+  const DESC_LIMIT = 200;
+  const hasLongDesc = book.description && book.description.length > DESC_LIMIT;
 
   return (
     <div className="book-card">
@@ -29,9 +34,17 @@ export default function BookCard({ book, onAdd, isInLibrary }) {
         )}
         {book.description && (
           <p className="book-desc">
-            {book.description.length > 200
-              ? book.description.slice(0, 200) + "..."
+            {hasLongDesc && !expanded
+              ? book.description.slice(0, DESC_LIMIT) + "..."
               : book.description}
+            {hasLongDesc && (
+              <button
+                className="desc-toggle"
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? "less" : "more"}
+              </button>
+            )}
           </p>
         )}
         {book.categories?.length > 0 && (

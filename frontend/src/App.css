@@ -395,6 +395,34 @@
   margin-top: 8px;
   line-height: 1.5;
 }
+.desc-toggle {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 0 0 4px;
+  text-decoration: underline;
+  font-weight: 500;
+}
+.desc-toggle:hover {
+  opacity: 0.8;
+}
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.load-more-btn {
+  min-width: 180px;
+}
+.no-more-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 12px;
+}
 .book-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .tag {
   font-size: 11px;

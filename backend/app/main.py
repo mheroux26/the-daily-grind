@@ -105,12 +105,12 @@ async def scan_book_cover(file: UploadFile = File(...)):
 
 
 @app.get("/search", response_model=ScanResponse)
-async def search_by_text(q: str):
+async def search_by_text(q: str, mode: str = "title", start_index: int = 0):
     if not q.strip():
         raise HTTPException(400, "Search query cannot be empty")
 
     try:
-        matches = await search_books(q.strip())
+        matches = await search_books(q.strip(), start_index=start_index)
     except Exception as e:
         raise HTTPException(502, "Book search failed: {}".format(e))
 

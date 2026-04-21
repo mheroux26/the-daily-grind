@@ -2771,6 +2771,12 @@
 
 /* ══ MOBILE FIXES ═══════════════════════════════ */
 @media (max-width: 600px) {
+  /* Let the vibe background shine through more on mobile */
+  :root {
+    --overlay-start: rgba(16, 12, 22, 0.35) !important;
+    --overlay-end: rgba(16, 12, 22, 0.28) !important;
+  }
+
   /* Layout: less padding on mobile */
   .app {
     padding: 20px 14px 100px;

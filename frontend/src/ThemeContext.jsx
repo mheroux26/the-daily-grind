@@ -305,8 +305,19 @@ export function ThemeProvider({ children }) {
     root.style.setProperty("--border", c.border);
     root.style.setProperty("--text", c.text);
     root.style.setProperty("--text-muted", c.textMuted);
-    root.style.setProperty("--overlay-start", c.overlayStart);
-    root.style.setProperty("--overlay-end", c.overlayEnd);
+    // On mobile, reduce overlay so the vibe background is more visible
+    const isMobile = window.innerWidth <= 600;
+    if (isMobile) {
+      root.style.setProperty("--overlay-start", c.overlayStart.replace(/[\d.]+\)$/, m => {
+        const v = parseFloat(m); return Math.max(0.15, v - 0.20).toFixed(2) + ")";
+      }));
+      root.style.setProperty("--overlay-end", c.overlayEnd.replace(/[\d.]+\)$/, m => {
+        const v = parseFloat(m); return Math.max(0.10, v - 0.20).toFixed(2) + ")";
+      }));
+    } else {
+      root.style.setProperty("--overlay-start", c.overlayStart);
+      root.style.setProperty("--overlay-end", c.overlayEnd);
+    }
     root.style.setProperty("--font-heading", theme.fonts.heading);
     root.style.setProperty("--font-body", theme.fonts.body);
     root.style.setProperty("--bg-image", `url('${theme.background}')`);

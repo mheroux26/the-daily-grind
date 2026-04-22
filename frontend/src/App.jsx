@@ -6,6 +6,12 @@ import MusicPlayer from "./components/MusicPlayer";
 import BookTokFeed from "./components/BookTokFeed";
 import ThemePicker from "./components/ThemePicker";
 import NicknameLogin from "./components/NicknameLogin";
+import HamburgerMenu from "./components/HamburgerMenu";
+import AboutPage from "./components/AboutPage";
+import ProfilePage from "./components/ProfilePage";
+import SettingsPage from "./components/SettingsPage";
+import PrivacyPage from "./components/PrivacyPage";
+import ContactPage from "./components/ContactPage";
 import { ThemeProvider, useTheme } from "./ThemeContext";
 import { useUser } from "./UserContext";
 import { useLibrary } from "./useLibrary";
@@ -45,6 +51,7 @@ function AppInner() {
   const [scanResult, setScanResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
+  const [menuPage, setMenuPage] = useState(null); // null = show tabs, string = show menu page
   const [readingGoal, setReadingGoal] = useState(() => {
     try {
       const saved = localStorage.getItem("dailygrind_reading_goal");
@@ -101,12 +108,15 @@ function AppInner() {
 
   return (
     <div className="app">
-      {/* ── Minimal Wordmark Logo ── */}
+      {/* ── Header with Hamburger ── */}
       <header className="app-header">
-        <h1 className="logo-wordmark">
-          the daily <em>grind</em>
-        </h1>
-        <p className="tagline">{theme.tagline}</p>
+        <HamburgerMenu activePage={menuPage} onNavigate={setMenuPage} user={user} />
+        <div className="header-text">
+          <h1 className="logo-wordmark" onClick={() => setMenuPage(null)}>
+            the daily <em>grind</em>
+          </h1>
+          <p className="tagline">{theme.tagline}</p>
+        </div>
       </header>
 
       <ThemePicker />
@@ -134,7 +144,25 @@ function AppInner() {
       </nav>
 
       <main className="main-content">
-        {activeTab === "home" && (
+        {/* ── Menu Pages (overlay main tabs) ── */}
+        {menuPage === "about" && (
+          <AboutPage onBack={() => setMenuPage(null)} />
+        )}
+        {menuPage === "profile" && (
+          <ProfilePage onBack={() => setMenuPage(null)} user={user} library={library} theme={theme} />
+        )}
+        {menuPage === "settings" && (
+          <SettingsPage onBack={() => setMenuPage(null)} user={user} logout={logout} readingGoal={readingGoal} onSetGoal={handleSetGoal} />
+        )}
+        {menuPage === "privacy" && (
+          <PrivacyPage onBack={() => setMenuPage(null)} />
+        )}
+        {menuPage === "contact" && (
+          <ContactPage onBack={() => setMenuPage(null)} />
+        )}
+
+        {/* ── Regular Tabs (hidden when a menu page is open) ── */}
+        {!menuPage && activeTab === "home" && (
           <div className="home-page">
             {/* Compact scan area */}
             <section className="scan-section">
@@ -269,11 +297,11 @@ function AppInner() {
           </div>
         )}
 
-        {activeTab === "booktok" && (
+        {!menuPage && activeTab === "booktok" && (
           <BookTokFeed library={library} onAddToLibrary={addToLibrary} />
         )}
 
-        {activeTab === "library" && (
+        {!menuPage && activeTab === "library" && (
           <TBRLibrary
             library={library}
             onUpdateStatus={updateStatus}

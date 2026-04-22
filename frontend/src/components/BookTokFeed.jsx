@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTheme } from "../ThemeContext";
 import { useCreators, useUserProfile } from "../useCreators";
 import { useUser } from "../UserContext";
+import AmazonBadges from "./AmazonBadges";
 
 // Real BookTok creators — all verified handles with working links
 const CREATORS = [
@@ -526,6 +527,7 @@ function VideoCard({ video, onFollow, following, library, onAddToLibrary }) {
                       </div>
                     )}
                   </div>
+                  <AmazonBadges book={book} size="sm" />
                   {inLib ? (
                     <span className="tok-on-shelf">✓ On Shelf</span>
                   ) : (

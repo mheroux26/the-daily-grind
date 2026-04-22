@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Bookshelf from "./Bookshelf";
+import AmazonBadges from "./AmazonBadges";
 
 const STATUSES = ["tbr", "reading", "read"];
 const STATUS_LABELS = { tbr: "TBR", reading: "Reading", read: "Read" };
@@ -470,6 +471,9 @@ export default function TBRLibrary({
                     />
                   </div>
                 )}
+
+                {/* Kindle / Audible / Amazon */}
+                <AmazonBadges book={book} size="sm" />
 
                 {/* Actions row */}
                 <div className="lib-actions-row">

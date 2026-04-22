@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTheme } from "../ThemeContext";
+import AmazonBadges from "./AmazonBadges";
 
 function buyLink(book, theme) {
   if (theme?.buyUrl) {
@@ -61,6 +62,7 @@ export default function BookCard({ book, onAdd, isInLibrary }) {
             ))}
           </div>
         )}
+        <AmazonBadges book={book} size="sm" />
         <div className="book-actions">
           {!isInLibrary ? (
             <button className="btn btn-primary" onClick={() => onAdd(book)}>

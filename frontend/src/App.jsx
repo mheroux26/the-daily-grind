@@ -125,19 +125,19 @@ function AppInner() {
       <nav className="tab-bar">
         <button
           className={`tab ${activeTab === "home" ? "active" : ""}`}
-          onClick={() => setActiveTab("home")}
+          onClick={() => { setMenuPage(null); setActiveTab("home"); }}
         >
           Home
         </button>
         <button
           className={`tab ${activeTab === "booktok" ? "active" : ""}`}
-          onClick={() => setActiveTab("booktok")}
+          onClick={() => { setMenuPage(null); setActiveTab("booktok"); }}
         >
           BookTok
         </button>
         <button
           className={`tab ${activeTab === "library" ? "active" : ""}`}
-          onClick={() => setActiveTab("library")}
+          onClick={() => { setMenuPage(null); setActiveTab("library"); }}
         >
           My Shelf {library.length > 0 && `(${library.length})`}
         </button>

@@ -31,9 +31,9 @@ export const THEMES = {
       body: "'DM Sans', sans-serif",
     },
     music: [
-      { name: "Lo-fi Chill", genre: "lofi", url: "https://streams.ilovemusic.de/iloveradio17.mp3", fallback: "https://play.streamafrica.net/lofiradio" },
+      { name: "Lo-fi Chill", genre: "lofi", url: "https://ice2.somafm.com/groovesalad-128-mp3", fallback: "https://play.streamafrica.net/lofiradio" },
       { name: "Jazz Cafe", genre: "jazz", url: "https://streaming.radio.co/s774887f7b/listen", fallback: "https://stream.0nlineradio.com/jazz" },
-      { name: "Ambient", genre: "ambient", url: "https://streams.ilovemusic.de/iloveradio20.mp3", fallback: "https://stream.0nlineradio.com/ambient" },
+      { name: "Ambient", genre: "ambient", url: "https://ice2.somafm.com/dronezone-128-mp3", fallback: "https://stream.0nlineradio.com/ambient" },
     ],
     ratings: {
       icon: "cup",
@@ -67,9 +67,9 @@ export const THEMES = {
       body: "'Lora', serif",
     },
     music: [
-      { name: "Classical", genre: "classical", url: "https://streams.ilovemusic.de/iloveradio28.mp3", fallback: "https://stream.0nlineradio.com/classical" },
-      { name: "Study Ambience", genre: "study", url: "https://streams.ilovemusic.de/iloveradio17.mp3", fallback: "https://stream.0nlineradio.com/ambient" },
-      { name: "Americana", genre: "americana", url: "https://ice6.somafm.com/folkfwd-128-mp3", fallback: "https://streams.ilovemusic.de/iloveradio17.mp3" },
+      { name: "Classical", genre: "classical", url: "https://stream.0nlineradio.com/classical", fallback: "https://ice2.somafm.com/dronezone-128-mp3" },
+      { name: "Study Ambience", genre: "study", url: "https://ice2.somafm.com/groovesalad-128-mp3", fallback: "https://stream.0nlineradio.com/ambient" },
+      { name: "Baroque", genre: "baroque", url: "https://ice2.somafm.com/lush-128-mp3", fallback: "https://stream.0nlineradio.com/classical" },
     ],
     ratings: {
       icon: "quill",
@@ -103,9 +103,9 @@ export const THEMES = {
       body: "'Inter', sans-serif",
     },
     music: [
-      { name: "Pop Hits", genre: "pop", url: "https://streams.ilovemusic.de/iloveradio1.mp3", fallback: "https://stream.0nlineradio.com/pop" },
-      { name: "Hip-Hop", genre: "hiphop", url: "https://streams.ilovemusic.de/iloveradio3.mp3", fallback: "https://stream.0nlineradio.com/hiphop" },
-      { name: "EDM", genre: "edm", url: "https://streams.ilovemusic.de/iloveradio2.mp3", fallback: "https://stream.0nlineradio.com/dance" },
+      { name: "Pop Hits", genre: "pop", url: "https://stream.0nlineradio.com/pop", fallback: "https://ice2.somafm.com/indiepop-128-mp3" },
+      { name: "Hip-Hop", genre: "hiphop", url: "https://stream.0nlineradio.com/hiphop", fallback: "https://streams.ilovemusic.de/iloveradio3.mp3" },
+      { name: "EDM", genre: "edm", url: "https://stream.0nlineradio.com/dance", fallback: "https://streams.ilovemusic.de/iloveradio2.mp3" },
     ],
     ratings: {
       icon: "fire",
@@ -139,9 +139,9 @@ export const THEMES = {
       body: "'Source Sans 3', sans-serif",
     },
     music: [
-      { name: "Country", genre: "country", url: "https://streams.ilovemusic.de/iloveradio24.mp3", fallback: "https://stream.0nlineradio.com/country" },
-      { name: "Bluegrass", genre: "bluegrass", url: "https://ice64.securenetsystems.net/WAMU_BLUEGRASS", fallback: "https://streams.ilovemusic.de/iloveradio24.mp3" },
-      { name: "Acoustic", genre: "acoustic", url: "https://ice6.somafm.com/folkfwd-128-mp3", fallback: "https://stream.0nlineradio.com/folk" },
+      { name: "Country", genre: "country", url: "https://ice2.somafm.com/bootliquor-128-mp3", fallback: "https://stream.0nlineradio.com/country" },
+      { name: "Bluegrass", genre: "bluegrass", url: "https://ice24.securenetsystems.net/WAMU", fallback: "https://ice2.somafm.com/bootliquor-128-mp3" },
+      { name: "Folk Acoustic", genre: "acoustic", url: "https://ice2.somafm.com/folkfwd-128-mp3", fallback: "https://stream.0nlineradio.com/folk" },
     ],
     ratings: {
       icon: "boot",
@@ -175,9 +175,9 @@ export const THEMES = {
       body: "'Nunito', sans-serif",
     },
     music: [
-      { name: "Indie Chill", genre: "indie", url: "https://streams.ilovemusic.de/iloveradio16.mp3", fallback: "https://stream.0nlineradio.com/indie" },
-      { name: "Surf Rock", genre: "surf", url: "https://ice6.somafm.com/suburbsofgoa-128-mp3", fallback: "https://streams.ilovemusic.de/iloveradio16.mp3" },
-      { name: "Ocean Waves", genre: "ocean", url: "https://ice6.somafm.com/dronezone-128-mp3", fallback: "https://ice6.somafm.com/deepspaceone-128-mp3" },
+      { name: "Indie Chill", genre: "indie", url: "https://ice2.somafm.com/indiepop-128-mp3", fallback: "https://stream.0nlineradio.com/indie" },
+      { name: "Surf Vibes", genre: "surf", url: "https://ice2.somafm.com/suburbsofgoa-128-mp3", fallback: "https://ice2.somafm.com/lush-128-mp3" },
+      { name: "Ocean Waves", genre: "ocean", url: "https://ice2.somafm.com/dronezone-128-mp3", fallback: "https://ice2.somafm.com/deepspaceone-128-mp3" },
     ],
     ratings: {
       icon: "wave",
@@ -211,9 +211,9 @@ export const THEMES = {
       body: "'Nunito Sans', sans-serif",
     },
     music: [
-      { name: "Folk", genre: "folk", url: "https://streams.ilovemusic.de/iloveradio17.mp3", fallback: "https://stream.0nlineradio.com/folk" },
-      { name: "Acoustic", genre: "acoustic", url: "https://stream.0nlineradio.com/folk", fallback: "https://streams.ilovemusic.de/iloveradio17.mp3" },
-      { name: "Nature Sounds", genre: "nature", url: "https://streams.ilovemusic.de/iloveradio20.mp3", fallback: "https://stream.0nlineradio.com/ambient" },
+      { name: "Folk", genre: "folk", url: "https://ice2.somafm.com/folkfwd-128-mp3", fallback: "https://stream.0nlineradio.com/folk" },
+      { name: "Acoustic", genre: "acoustic", url: "https://stream.0nlineradio.com/folk", fallback: "https://ice2.somafm.com/folkfwd-128-mp3" },
+      { name: "Nature Sounds", genre: "nature", url: "https://ice2.somafm.com/dronezone-128-mp3", fallback: "https://stream.0nlineradio.com/ambient" },
     ],
     ratings: {
       icon: "flower",
@@ -258,8 +258,8 @@ export const THEMES = {
     buyUrl: "https://anunlikelystory.indiecommerce.com",
     buyLabel: "Shop Indie",
     music: [
-      { name: "Indie Folk", genre: "folk", url: "https://ice6.somafm.com/folkfwd-128-mp3", fallback: "https://stream.0nlineradio.com/folk" },
-      { name: "Coffee House", genre: "acoustic", url: "https://streams.ilovemusic.de/iloveradio17.mp3", fallback: "https://stream.0nlineradio.com/folk" },
+      { name: "Indie Folk", genre: "folk", url: "https://ice2.somafm.com/folkfwd-128-mp3", fallback: "https://stream.0nlineradio.com/folk" },
+      { name: "Coffee House", genre: "acoustic", url: "https://ice2.somafm.com/lush-128-mp3", fallback: "https://stream.0nlineradio.com/folk" },
       { name: "Jazz Trio", genre: "jazz", url: "https://streaming.radio.co/s774887f7b/listen", fallback: "https://stream.0nlineradio.com/jazz" },
     ],
     ratings: {

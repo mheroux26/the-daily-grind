@@ -2228,6 +2228,195 @@
   color: var(--text-secondary);
   font-size: 16px;
 }
+/* ── Platform Badge on Video Cards ──────────── */
+.tok-platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  width: fit-content;
+}
+.tok-platform-icon {
+  font-size: 13px;
+}
+.platform-tiktok { background: rgba(255, 0, 80, 0.15); color: #ff0050; }
+.platform-youtube { background: rgba(255, 0, 0, 0.12); color: #ff4444; }
+.platform-instagram { background: rgba(225, 48, 108, 0.15); color: #e1306c; }
+
+/* ── Platform Filter Pills ─────────────────── */
+.tok-platform-filters {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 20px;
+  flex-wrap: wrap;
+}
+.tok-platform-pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tok-platform-pill:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.tok-platform-pill.active {
+  background: var(--accent);
+  color: #0f0f0f;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.tok-platform-pill.active.platform-tiktok { background: #ff0050; border-color: #ff0050; color: #fff; }
+.tok-platform-pill.active.platform-youtube { background: #ff4444; border-color: #ff4444; color: #fff; }
+.tok-platform-pill.active.platform-instagram { background: #e1306c; border-color: #e1306c; color: #fff; }
+
+/* ── Platform Icons on Creator Spotlight ────── */
+.tok-platform-icons {
+  display: flex;
+  gap: 6px;
+  margin: 2px 0;
+}
+.tok-platform-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.04);
+}
+.tok-platform-icon-link:hover {
+  transform: scale(1.15);
+}
+.tok-platform-icon-link.platform-tiktok { color: #ff0050; }
+.tok-platform-icon-link.platform-tiktok:hover { background: rgba(255, 0, 80, 0.15); border-color: #ff0050; }
+.tok-platform-icon-link.platform-youtube { color: #ff4444; }
+.tok-platform-icon-link.platform-youtube:hover { background: rgba(255, 0, 0, 0.12); border-color: #ff4444; }
+.tok-platform-icon-link.platform-instagram { color: #e1306c; }
+.tok-platform-icon-link.platform-instagram:hover { background: rgba(225, 48, 108, 0.15); border-color: #e1306c; }
+
+/* ── Trending on BookTok Section ───────────── */
+.trending-booktok-section {
+  margin: 20px 0 28px;
+  padding: 20px;
+  background: var(--surface-solid, #1a1720);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+}
+.trending-booktok-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+.trending-booktok-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+.trending-booktok-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.trending-booktok-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.trending-booktok-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+.trending-booktok-card {
+  flex-shrink: 0;
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scroll-snap-align: start;
+}
+.trending-booktok-cover {
+  position: relative;
+  width: 120px;
+  height: 180px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-hover);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.trending-booktok-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.trending-mention-count {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--accent);
+  color: #0f0f0f;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+}
+.trending-booktok-book-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.trending-booktok-author {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.trending-booktok-platforms {
+  display: flex;
+  gap: 4px;
+}
+.trending-platform-dot {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+  .tok-platform-filters {
+    gap: 6px;
+  }
+  .tok-platform-pill {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .trending-booktok-card {
+    width: 100px;
+  }
+  .trending-booktok-cover {
+    width: 100px;
+    height: 150px;
+  }
+}
+
 .tok-cta {
   text-align: center;
   padding: 28px 0;

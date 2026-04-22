@@ -1,8 +1,20 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTheme } from "../ThemeContext";
 import { useCreators, useUserProfile } from "../useCreators";
 import { useUser } from "../UserContext";
 import AmazonBadges from "./AmazonBadges";
+
+// Platform icons
+const PLATFORM_ICONS = {
+  tiktok: "♪",
+  youtube: "▶",
+  instagram: "◎",
+};
+const PLATFORM_LABELS = {
+  tiktok: "TikTok",
+  youtube: "YouTube",
+  instagram: "Instagram",
+};
 
 // Real BookTok creators — all verified handles with working links
 const CREATORS = [
@@ -12,18 +24,22 @@ const CREATORS = [
     handle: "@bradylockerby",
     avatar: "📚",
     followers: "1M+",
+    platforms: ["tiktok", "youtube", "instagram"],
     instagram: "https://www.instagram.com/bradylockerby/",
     tiktok: "https://www.tiktok.com/@bradylockerby",
+    youtube: "https://www.youtube.com/@BradyLockerby",
     website: "https://bradylockerby.com",
   },
   {
     id: "jackbenedwards",
     name: "Jack Edwards",
-    handle: "@jackbenedwards",
+    handle: "@jack_edwards",
     avatar: "📖",
     followers: "1.5M+",
+    platforms: ["youtube", "tiktok", "instagram"],
     instagram: "https://www.instagram.com/jackbenedwards/",
-    tiktok: "https://www.tiktok.com/@jackbenedwards",
+    tiktok: "https://www.tiktok.com/@jack_edwards",
+    youtube: "https://www.youtube.com/@jack_edwards",
   },
   {
     id: "cassiesbooktok",
@@ -31,7 +47,9 @@ const CREATORS = [
     handle: "@cassiesbooktok",
     avatar: "✨",
     followers: "3.9M+",
+    platforms: ["tiktok", "instagram"],
     tiktok: "https://www.tiktok.com/@cassiesbooktok",
+    instagram: "https://www.instagram.com/cassiesbooktok/",
   },
   {
     id: "tierney.reads",
@@ -39,7 +57,9 @@ const CREATORS = [
     handle: "@tierney.reads",
     avatar: "🌶️",
     followers: "808K+",
+    platforms: ["tiktok", "instagram"],
     tiktok: "https://www.tiktok.com/@tierney.reads",
+    instagram: "https://www.instagram.com/tierney.reads/",
   },
   {
     id: "abbysbooks",
@@ -47,7 +67,9 @@ const CREATORS = [
     handle: "@abbysbooks",
     avatar: "🧚",
     followers: "460K+",
+    platforms: ["tiktok", "instagram"],
     tiktok: "https://www.tiktok.com/@abbysbooks",
+    instagram: "https://www.instagram.com/abbysbooks/",
   },
 ];
 
@@ -64,6 +86,7 @@ function olCover(isbn, gbId) {
 const SAMPLE_VIDEOS = [
   {
     id: 1,
+    platform: "tiktok",
     creator: CREATORS[0],
     tiktokId: "7504830235951533342",
     thumbnail: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80",
@@ -103,6 +126,7 @@ const SAMPLE_VIDEOS = [
   },
   {
     id: 2,
+    platform: "tiktok",
     creator: CREATORS[0],
     tiktokId: "7489237110759623967",
     thumbnail: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&q=80",
@@ -133,6 +157,7 @@ const SAMPLE_VIDEOS = [
   },
   {
     id: 3,
+    platform: "tiktok",
     creator: CREATORS[1],
     tiktokId: "7183808146689838341",
     thumbnail: "https://images.unsplash.com/photo-1474932430478-367dbb6832c1?w=600&q=80",
@@ -172,6 +197,7 @@ const SAMPLE_VIDEOS = [
   },
   {
     id: 4,
+    platform: "tiktok",
     creator: CREATORS[2],
     tiktokId: "7324079139122613510",
     thumbnail: "https://images.unsplash.com/photo-1519682577862-22b62b24e493?w=600&q=80",
@@ -211,6 +237,7 @@ const SAMPLE_VIDEOS = [
   },
   {
     id: 5,
+    platform: "tiktok",
     creator: CREATORS[3],
     tiktokId: "7277883627319446792",
     thumbnail: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=600&q=80",
@@ -250,6 +277,7 @@ const SAMPLE_VIDEOS = [
   },
   {
     id: 6,
+    platform: "tiktok",
     creator: CREATORS[4],
     tiktokId: null,
     tiktokUrl: "https://www.tiktok.com/@abbysbooks",
@@ -285,6 +313,163 @@ const SAMPLE_VIDEOS = [
         categories: ["Thriller", "Mystery"],
         sub_genres: ["Psychological Thriller", "Domestic Thriller"],
         amazon_url: "https://www.amazon.com/s?k=Woman+in+the+Window+AJ+Finn",
+      },
+    ],
+  },
+  // ── YouTube videos ──────────────────────────────────
+  {
+    id: 7,
+    platform: "youtube",
+    creator: CREATORS[1],
+    youtubeId: "j_q8jHikKng",
+    thumbnail: "https://img.youtube.com/vi/j_q8jHikKng/hqdefault.jpg",
+    caption: "i read the most viral books on booktok and booktube — should we believe the hype?",
+    tags: ["BookTube", "Viral Books", "Honest Reviews"],
+    likes: "185K",
+    comments: "4.3K",
+    books: [
+      {
+        title: "It Ends with Us",
+        authors: "Colleen Hoover",
+        cover_url: olCover("9781501110368", "TH0GEAAAQBAJ").primary,
+        cover_fallback: olCover("9781501110368", "TH0GEAAAQBAJ").fallback,
+        categories: ["Romance", "Fiction"],
+        sub_genres: ["Contemporary Romance", "Domestic Fiction"],
+        amazon_url: "https://www.amazon.com/s?k=It+Ends+With+Us+Colleen+Hoover",
+      },
+      {
+        title: "The Seven Husbands of Evelyn Hugo",
+        authors: "Taylor Jenkins Reid",
+        cover_url: olCover("9781501161933", "GXULEAAAQBAJ").primary,
+        cover_fallback: olCover("9781501161933", "GXULEAAAQBAJ").fallback,
+        categories: ["Historical Fiction", "Fiction"],
+        sub_genres: ["Historical Fiction", "Literary Fiction"],
+        amazon_url: "https://www.amazon.com/s?k=Seven+Husbands+Evelyn+Hugo",
+      },
+    ],
+  },
+  {
+    id: 8,
+    platform: "youtube",
+    creator: CREATORS[1],
+    youtubeId: "D569ZcfKe74",
+    thumbnail: "https://img.youtube.com/vi/D569ZcfKe74/hqdefault.jpg",
+    caption: "the biggest books year-by-year — a journey through the books that defined each era",
+    tags: ["BookTube", "Book History", "Biggest Books"],
+    likes: "220K",
+    comments: "5.1K",
+    books: [
+      {
+        title: "The Hunger Games",
+        authors: "Suzanne Collins",
+        cover_url: olCover("9780439023528", "hlb_sM1AN0gC").primary,
+        cover_fallback: olCover("9780439023528", "hlb_sM1AN0gC").fallback,
+        categories: ["YA Fiction", "Sci-Fi"],
+        sub_genres: ["YA Dystopian"],
+        amazon_url: "https://www.amazon.com/s?k=The+Hunger+Games+Suzanne+Collins",
+      },
+      {
+        title: "Gone Girl",
+        authors: "Gillian Flynn",
+        cover_url: olCover("9780307588371", "hfjfCgAAQBAJ").primary,
+        cover_fallback: olCover("9780307588371", "hfjfCgAAQBAJ").fallback,
+        categories: ["Thriller", "Mystery"],
+        sub_genres: ["Psychological Thriller"],
+        amazon_url: "https://www.amazon.com/s?k=Gone+Girl+Gillian+Flynn",
+      },
+    ],
+  },
+  {
+    id: 9,
+    platform: "youtube",
+    creator: CREATORS[0],
+    youtubeId: "DdL_Xae74Ko",
+    thumbnail: "https://img.youtube.com/vi/DdL_Xae74Ko/hqdefault.jpg",
+    caption: "BookTok hits, misses & must-read books — the full honest rundown",
+    tags: ["Book Club", "BookTok Recs", "Must Reads"],
+    likes: "67K",
+    comments: "1.8K",
+    books: [
+      {
+        title: "The Nightingale",
+        authors: "Kristin Hannah",
+        cover_url: olCover("9780312577223", "pETmBgAAQBAJ").primary,
+        cover_fallback: olCover("9780312577223", "pETmBgAAQBAJ").fallback,
+        categories: ["Historical Fiction", "Fiction"],
+        sub_genres: ["Historical Fiction"],
+        amazon_url: "https://www.amazon.com/s?k=The+Nightingale+Kristin+Hannah",
+      },
+      {
+        title: "Educated",
+        authors: "Tara Westover",
+        cover_url: olCover("9780399590504", "2ObWDgAAQBAJ").primary,
+        cover_fallback: olCover("9780399590504", "2ObWDgAAQBAJ").fallback,
+        categories: ["Nonfiction", "Memoir"],
+        sub_genres: ["Memoir"],
+        amazon_url: "https://www.amazon.com/s?k=Educated+Tara+Westover",
+      },
+    ],
+  },
+  // ── Instagram Reels ──────────────────────────────────
+  {
+    id: 10,
+    platform: "instagram",
+    creator: CREATORS[2],
+    instagramUrl: "https://www.instagram.com/reel/cassiesbooktok/",
+    thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
+    caption: "books that gave me a full-on identity crisis — save this for your next read",
+    tags: ["Bookstagram", "Identity Crisis Reads", "Must Reads"],
+    likes: "234K",
+    comments: "6.2K",
+    books: [
+      {
+        title: "The Midnight Library",
+        authors: "Matt Haig",
+        cover_url: olCover("9780525559474", "MtLDDwAAQBAJ").primary,
+        cover_fallback: olCover("9780525559474", "MtLDDwAAQBAJ").fallback,
+        categories: ["Fiction", "Fantasy"],
+        sub_genres: ["Contemporary Fiction", "Magical Realism"],
+        amazon_url: "https://www.amazon.com/s?k=The+Midnight+Library+Matt+Haig",
+      },
+      {
+        title: "Anxious People",
+        authors: "Fredrik Backman",
+        cover_url: olCover("9781501160837", "RfD5DwAAQBAJ").primary,
+        cover_fallback: olCover("9781501160837", "RfD5DwAAQBAJ").fallback,
+        categories: ["Fiction", "Literary Fiction"],
+        sub_genres: ["Contemporary Fiction", "Literary Fiction"],
+        amazon_url: "https://www.amazon.com/s?k=Anxious+People+Fredrik+Backman",
+      },
+    ],
+  },
+  {
+    id: 11,
+    platform: "instagram",
+    creator: CREATORS[3],
+    instagramUrl: "https://www.instagram.com/tierney.reads/",
+    thumbnail: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80",
+    caption: "romance recs that will absolutely ruin you — my top picks for when you want ALL the feelings",
+    tags: ["Bookstagram", "Romance Recs", "Spicy Books"],
+    likes: "112K",
+    comments: "2.9K",
+    books: [
+      {
+        title: "People We Meet on Vacation",
+        authors: "Emily Henry",
+        cover_url: olCover("9781984806758", "w3rODwAAQBAJ").primary,
+        cover_fallback: olCover("9781984806758", "w3rODwAAQBAJ").fallback,
+        categories: ["Romance", "Fiction"],
+        sub_genres: ["Romantic Comedy", "Contemporary Romance"],
+        amazon_url: "https://www.amazon.com/s?k=People+We+Meet+on+Vacation+Emily+Henry",
+      },
+      {
+        title: "Book Lovers",
+        authors: "Emily Henry",
+        cover_url: olCover("9780593334836", "7zJEEAAAQBAJ").primary,
+        cover_fallback: olCover("9780593334836", "7zJEEAAAQBAJ").fallback,
+        categories: ["Romance", "Fiction"],
+        sub_genres: ["Romantic Comedy"],
+        amazon_url: "https://www.amazon.com/s?k=Book+Lovers+Emily+Henry",
       },
     ],
   },
@@ -408,15 +593,31 @@ const STAFF_PICKS = [
 
 function VideoCard({ video, onFollow, following, library, onAddToLibrary }) {
   const creator = video.creator;
+  const platform = video.platform || "tiktok";
 
-  // TikTok embed URL — loads as a still frame with TikTok's own play button
-  const embedSrc = video.tiktokId
-    ? `https://www.tiktok.com/embed/v2/${video.tiktokId}`
-    : null;
+  // Build embed URL and watch URL based on platform
+  let embedSrc = null;
+  let watchUrl = null;
+  let watchLabel = "Watch on TikTok";
 
-  const watchUrl = video.tiktokId
-    ? `https://www.tiktok.com/@${creator.id}/video/${video.tiktokId}`
-    : video.tiktokUrl || creator.tiktok;
+  if (platform === "youtube" && video.youtubeId) {
+    embedSrc = `https://www.youtube.com/embed/${video.youtubeId}`;
+    watchUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+    watchLabel = "Watch on YouTube";
+  } else if (platform === "instagram") {
+    embedSrc = null; // Instagram embeds need oEmbed, use thumbnail + link for now
+    watchUrl = video.instagramUrl || creator.instagram;
+    watchLabel = "Watch on Instagram";
+  } else {
+    // TikTok
+    embedSrc = video.tiktokId
+      ? `https://www.tiktok.com/embed/v2/${video.tiktokId}`
+      : null;
+    watchUrl = video.tiktokId
+      ? `https://www.tiktok.com/@${creator.id}/video/${video.tiktokId}`
+      : video.tiktokUrl || creator.tiktok;
+    watchLabel = "Watch on TikTok";
+  }
 
   function isInLibrary(book) {
     return library.some((b) => b.title === book.title);
@@ -424,6 +625,12 @@ function VideoCard({ video, onFollow, following, library, onAddToLibrary }) {
 
   return (
     <div className="tok-card">
+      {/* Platform badge */}
+      <div className={`tok-platform-badge platform-${platform}`}>
+        <span className="tok-platform-icon">{PLATFORM_ICONS[platform]}</span>
+        <span>{PLATFORM_LABELS[platform]}</span>
+      </div>
+
       {/* Creator header */}
       <div className="tok-creator">
         <div className="tok-avatar">{creator.avatar}</div>
@@ -470,7 +677,7 @@ function VideoCard({ video, onFollow, following, library, onAddToLibrary }) {
             >
               <div className="tok-play-overlay">
                 <div className="tok-play-btn">▶</div>
-                <span className="tok-play-label">Watch on TikTok</span>
+                <span className="tok-play-label">{watchLabel}</span>
               </div>
               <div className="tok-video-gradient"></div>
             </div>
@@ -550,7 +757,7 @@ function VideoCard({ video, onFollow, following, library, onAddToLibrary }) {
         <span className="tok-stat">❤️ {video.likes}</span>
         <span className="tok-stat">💬 {video.comments}</span>
         <a href={watchUrl} target="_blank" rel="noopener noreferrer" className="tok-watch-link">
-          Watch on TikTok ↗
+          {watchLabel} ↗
         </a>
       </div>
     </div>
@@ -564,6 +771,22 @@ function CreatorSpotlight({ creator, onFollow, following }) {
       <div className="tok-spotlight-info">
         <span className="tok-spotlight-name">{creator.name}</span>
         <span className="tok-spotlight-handle">{creator.handle}</span>
+        {creator.platforms && (
+          <div className="tok-platform-icons">
+            {creator.platforms.map((p) => (
+              <a
+                key={p}
+                href={creator[p]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`tok-platform-icon-link platform-${p}`}
+                title={PLATFORM_LABELS[p]}
+              >
+                {PLATFORM_ICONS[p]}
+              </a>
+            ))}
+          </div>
+        )}
         <span className="tok-spotlight-followers">{creator.followers} followers</span>
       </div>
       <button
@@ -773,12 +996,82 @@ function CommunityCreatorCard({ creator, onFollow, following, currentUserId, onR
   );
 }
 
+// ── Trending Books — computed dynamically from all video mentions ────
+function TrendingBooks({ videos, library, onAddToLibrary }) {
+  const trending = useMemo(() => {
+    const bookCounts = {};
+    videos.forEach((v) => {
+      (v.books || []).forEach((book) => {
+        const key = book.title;
+        if (!bookCounts[key]) {
+          bookCounts[key] = { ...book, mentions: 0, platforms: new Set() };
+        }
+        bookCounts[key].mentions += 1;
+        bookCounts[key].platforms.add(v.platform || "tiktok");
+      });
+    });
+    return Object.values(bookCounts)
+      .map((b) => ({ ...b, platforms: Array.from(b.platforms) }))
+      .sort((a, b) => b.mentions - a.mentions)
+      .slice(0, 8);
+  }, [videos]);
+
+  if (trending.length === 0) return null;
+
+  const libTitles = new Set(library.map((b) => b.title));
+
+  return (
+    <div className="trending-booktok-section">
+      <h3 className="trending-booktok-title">🔥 Trending on BookTok</h3>
+      <p className="trending-booktok-subtitle">Most mentioned across TikTok, YouTube & Instagram</p>
+      <div className="trending-booktok-scroll">
+        {trending.map((book) => (
+          <div key={book.title} className="trending-booktok-card">
+            <div className="trending-booktok-cover">
+              <img
+                src={book.cover_url}
+                alt=""
+                onError={(e) => {
+                  if (book.cover_fallback && !e.target.dataset.triedFallback) {
+                    e.target.dataset.triedFallback = "true";
+                    e.target.src = book.cover_fallback;
+                  }
+                }}
+              />
+              <span className="trending-mention-count">
+                {book.mentions}x
+              </span>
+            </div>
+            <span className="trending-booktok-book-title">{book.title}</span>
+            <span className="trending-booktok-author">{book.authors}</span>
+            <div className="trending-booktok-platforms">
+              {book.platforms.map((p) => (
+                <span key={p} className={`trending-platform-dot platform-${p}`} title={PLATFORM_LABELS[p]}>
+                  {PLATFORM_ICONS[p]}
+                </span>
+              ))}
+            </div>
+            {libTitles.has(book.title) ? (
+              <span className="trending-on-shelf">✓ On shelf</span>
+            ) : (
+              <button className="trending-add" onClick={() => onAddToLibrary(book)}>
+                + Add
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function BookTokFeed({ library = [], onAddToLibrary }) {
   const { theme } = useTheme();
   const { user } = useUser();
   const { creators: communityCreators, addCreator, removeCreator } = useCreators(user?.id);
   const [followedCreators, setFollowedCreators] = useState(new Set());
   const [feedFilter, setFeedFilter] = useState("forYou");
+  const [platformFilter, setPlatformFilter] = useState("all");
   const [showAddForm, setShowAddForm] = useState(false);
   const isIndie = theme?.id === "indieshop";
 
@@ -791,10 +1084,16 @@ export default function BookTokFeed({ library = [], onAddToLibrary }) {
     });
   }
 
-  const filteredVideos =
-    feedFilter === "following"
-      ? SAMPLE_VIDEOS.filter((v) => followedCreators.has(v.creator.id))
-      : SAMPLE_VIDEOS;
+  const filteredVideos = useMemo(() => {
+    let vids = SAMPLE_VIDEOS;
+    if (feedFilter === "following") {
+      vids = vids.filter((v) => followedCreators.has(v.creator.id));
+    }
+    if (platformFilter !== "all") {
+      vids = vids.filter((v) => v.platform === platformFilter);
+    }
+    return vids;
+  }, [feedFilter, platformFilter, followedCreators]);
 
   return (
     <div className="tok-feed-section">
@@ -803,7 +1102,7 @@ export default function BookTokFeed({ library = [], onAddToLibrary }) {
         <p className="tok-subtitle">
           {isIndie
             ? "BookTok recs and curated picks from An Unlikely Story staff"
-            : "The best book recs from your favorite creators"}
+            : "The best book recs from TikTok, YouTube & Instagram"}
         </p>
       </div>
 
@@ -867,6 +1166,31 @@ export default function BookTokFeed({ library = [], onAddToLibrary }) {
           </button>
         )}
       </div>
+
+      {/* Platform filter pills */}
+      {feedFilter !== "staffPicks" && (
+        <div className="tok-platform-filters">
+          {[
+            { key: "all", label: "All" },
+            { key: "tiktok", label: "♪ TikTok" },
+            { key: "youtube", label: "▶ YouTube" },
+            { key: "instagram", label: "◎ Instagram" },
+          ].map((p) => (
+            <button
+              key={p.key}
+              className={`tok-platform-pill ${platformFilter === p.key ? "active" : ""} ${p.key !== "all" ? `platform-${p.key}` : ""}`}
+              onClick={() => setPlatformFilter(p.key)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Trending on BookTok — dynamic from video mentions */}
+      {feedFilter !== "staffPicks" && (
+        <TrendingBooks videos={SAMPLE_VIDEOS} library={library} onAddToLibrary={onAddToLibrary} />
+      )}
 
       {feedFilter === "staffPicks" && isIndie ? (
         <div className="staff-picks-section">

@@ -12,7 +12,7 @@ function buildAmazonLinks(book) {
   );
 
   return {
-    kindle: `https://www.amazon.com/s?k=${q}&i=digital-text&rh=p_n_feature_nineteen_browse-bin%3A9045887011`,
+    kindle: `https://www.amazon.com/s?k=${q}&i=digital-text`,
     audible: `https://www.amazon.com/s?k=${q}&i=audible`,
     amazon: book.amazon_url || `https://www.amazon.com/s?k=${q}&i=stripbooks`,
   };
